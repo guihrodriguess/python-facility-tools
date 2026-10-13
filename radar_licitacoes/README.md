@@ -36,6 +36,7 @@ python radar.py --uf MG --todas
 
 - `saida/radar_MG_AAAA-MM-DD.md`: resumo por categoria, o que encerra em até 7 dias e a lista completa por pontuação, com link para o edital no PNCP.
 - `saida/radar_MG_AAAA-MM-DD.csv`: separado por `;` e com BOM, para abrir direto no Excel. Traz o motivo de cada ponto.
+- `--json caminho.json` (opcional): resumo com a rodada, os totais e os itens, para publicar numa página.
 
 ## Leitura guardada
 

@@ -66,6 +66,10 @@ class TestClassificar(unittest.TestCase):
         c = classificar("Serviços contínuos de manutenção e adequação das edificações públicas")
         self.assertIn("manutencao", c.categorias)
 
+    def test_producao_de_eventos_sai_mas_eventual_nao(self):
+        self.assertEqual(classificar("Produção de eventos com recepção, climatização e sonorização").pontos, 0)
+        self.assertGreater(classificar("Registro de preços para eventual contratação de serviços de limpeza").pontos, 0)
+
     def test_fora_do_escopo(self):
         self.assertEqual(classificar("Locação de brinquedos infláveis para eventos").categorias, [])
 

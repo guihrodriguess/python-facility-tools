@@ -74,6 +74,7 @@ EXCLUI = [
     "vigilancia sanitaria", "vigilancia em saude", "vigilancia epidemiolog", "vigilancia ambiental",
     "zoonose", "telemedicina", "veterinari", "restauro", "acervo", "coffee",
     "esgoto", "drenagem", "tapa-buraco", "cbuq", "perfuracao",
+    "evento", "sonorizacao", "tendas", "palco",
 ]
 
 # Compra de bem, não serviço: fala em aquisição, fornecimento ou material e
@@ -219,6 +220,7 @@ def montar_linhas(itens: list[dict], hoje: date, filtro: set[str] | None) -> lis
             "categorias": ", ".join(c.categorias),
             "motivo": "; ".join(c.motivos),
             "encerra": fim.strftime("%d/%m/%Y %H:%M") if fim else "",
+            "encerra_iso": fim.isoformat() if fim else "",
             "dias": dias,
             "valor_estimado": it.get("valorTotalEstimado") or 0.0,
             "orgao": (it.get("orgaoEntidade") or {}).get("razaoSocial", ""),
@@ -273,6 +275,23 @@ def escrever_md(linhas: list[dict], caminho: Path, ufs: list[str], lidos: int, h
     caminho.write_text("\n".join(md), encoding="utf-8")
 
 
+def escrever_json(linhas: list[dict], caminho: Path, ufs: list[str], lidos: int, hoje: date) -> None:
+    """Resumo para publicar (ex.: numa página web): só dado público do PNCP."""
+    urgentes = sum(1 for l in linhas if l["dias"] is not None and l["dias"] <= 7)
+    dados = {
+        "rodada": hoje.isoformat(),
+        "ufs": ufs,
+        "lidos": lidos,
+        "selecionados": len(linhas),
+        "encerram_7_dias": urgentes,
+        "itens": [
+            {k: l[k] for k in ("pontos", "categorias", "motivo", "encerra_iso", "valor_estimado", "orgao", "municipio", "objeto", "link")}
+            for l in linhas
+        ],
+    }
+    caminho.write_text(json.dumps(dados, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
 def _tabela(linhas: list[dict]) -> list[str]:
     out = ["| Pts | Encerra | Valor estimado | Órgão | Objeto |", "|---|---|---|---|---|"]
     for l in linhas:
@@ -293,6 +312,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--modalidade", type=int, default=PREGAO_ELETRONICO, help="código da modalidade no PNCP (6 = pregão eletrônico)")
     p.add_argument("--max-paginas", type=int, default=100, help="teto de páginas por UF")
     p.add_argument("--saida", type=Path, default=Path("saida"), help="pasta do relatório")
+    p.add_argument("--json", type=Path, help="também grava um resumo em JSON neste caminho")
     p.add_argument("--atualizar", action="store_true", help="consulta o PNCP de novo mesmo que já exista a leitura de hoje")
     a = p.parse_args(argv)
 
@@ -315,6 +335,8 @@ def main(argv: list[str] | None = None) -> int:
     base = a.saida / f"radar_{'-'.join(u.upper() for u in a.uf)}_{hoje.isoformat()}"
     escrever_csv(linhas, base.with_suffix(".csv"))
     escrever_md(linhas, base.with_suffix(".md"), [u.upper() for u in a.uf], len(itens), hoje, filtro)
+    if a.json:
+        escrever_json(linhas, a.json, [u.upper() for u in a.uf], len(itens), hoje)
     print(f"{len(itens)} lidos, {len(linhas)} de facilities → {base}.md / .csv")
     return 0
 
