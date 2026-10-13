@@ -231,6 +231,10 @@ def montar_linhas(itens: list[dict], hoje: date, filtro: set[str] | None, antece
             "objeto": re.sub(r"\s+", " ", it.get("objetoCompra", "")).strip(),
             "controle_pncp": controle,
             "link": f"https://pncp.gov.br/app/editais/{cnpj}/{ano}/{seq}" if cnpj and ano and seq else "",
+            # Onde o lance é dado: o PNCP só publica; a disputa corre na plataforma do órgão.
+            "numero": f"{it.get('numeroCompra', '')}/{ano}".strip("/"),
+            "plataforma": re.sub(r"\s+", " ", it.get("usuarioNome") or "").strip(),
+            "link_disputa": (it.get("linkSistemaOrigem") or "").strip(),
         })
     # Mais pontos primeiro; no empate, o que encerra antes.
     linhas.sort(key=lambda l: (-l["pontos"], l["dias"] if l["dias"] is not None else 999))
@@ -245,7 +249,8 @@ def reais(valor: float) -> str:
 
 
 def escrever_csv(linhas: list[dict], caminho: Path) -> None:
-    campos = ["pontos", "categorias", "encerra", "dias", "valor_estimado", "orgao", "municipio", "objeto", "motivo", "controle_pncp", "link"]
+    campos = ["pontos", "categorias", "encerra", "dias", "valor_estimado", "orgao", "municipio", "objeto", "numero", "plataforma",
+              "link_disputa", "motivo", "controle_pncp", "link"]
     with caminho.open("w", newline="", encoding="utf-8-sig") as f:  # BOM: o Excel abre com acento certo
         w = csv.DictWriter(f, fieldnames=campos, delimiter=";", extrasaction="ignore")
         w.writeheader()
@@ -288,7 +293,8 @@ def escrever_json(linhas: list[dict], caminho: Path, ufs: list[str], lidos: int,
         "selecionados": len(linhas),
         "encerram_7_dias": urgentes,
         "itens": [
-            {k: l[k] for k in ("pontos", "categorias", "motivo", "encerra_iso", "valor_estimado", "orgao", "municipio", "objeto", "link")}
+            {k: l[k] for k in ("pontos", "categorias", "motivo", "encerra_iso", "valor_estimado", "orgao", "municipio", "objeto",
+                               "numero", "plataforma", "link", "link_disputa")}
             for l in linhas
         ],
     }

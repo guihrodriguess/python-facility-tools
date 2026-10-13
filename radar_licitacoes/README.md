@@ -39,7 +39,9 @@ Edital que já encerrou, sem data de encerramento ou que encerra em menos de 3 d
 ## Saída
 
 - `saida/radar_MG_AAAA-MM-DD.md`: resumo por categoria, o que encerra em até 7 dias e a lista completa por pontuação, com link para o edital no PNCP.
-- `saida/radar_MG_AAAA-MM-DD.csv`: separado por `;` e com BOM, para abrir direto no Excel. Traz o motivo de cada ponto.
+- `saida/radar_MG_AAAA-MM-DD.csv`: separado por `;` e com BOM, para abrir direto no Excel. Traz o motivo de cada ponto, o número do pregão, a plataforma de disputa e o link dela.
+
+O PNCP só publica: o lance é dado na plataforma do órgão (Compras.gov, Licitar Digital, BLL, Licitanet...). Quando o órgão informa, o radar traz o link direto para o pregão na plataforma (`link_disputa`); quando não informa, traz o nome da plataforma.
 - `--json caminho.json` (opcional): resumo com a rodada, os totais e os itens, para publicar numa página.
 
 ## Leitura guardada

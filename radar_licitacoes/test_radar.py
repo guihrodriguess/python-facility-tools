@@ -86,6 +86,8 @@ class TestLinhas(unittest.TestCase):
             "valorTotalEstimado": 1000.0, "anoCompra": 2026, "sequencialCompra": 7,
             "orgaoEntidade": {"cnpj": "00000000000191", "razaoSocial": "ÓRGÃO TESTE"},
             "unidadeOrgao": {"municipioNome": "Cidade", "ufSigla": "MG"},
+            "numeroCompra": "90012", "usuarioNome": "Compras.gov.br",
+            "linkSistemaOrigem": "https://cnetmobile.estaleiro.serpro.gov.br/compra=1",
         }
 
     def test_ordena_dedup_e_descarta_vencido(self):
@@ -102,6 +104,9 @@ class TestLinhas(unittest.TestCase):
         self.assertEqual([l["controle_pncp"] for l in linhas], ["b", "a"])
         self.assertEqual(linhas[0]["dias"], 8)
         self.assertEqual(linhas[0]["link"], "https://pncp.gov.br/app/editais/00000000000191/2026/7")
+        self.assertEqual(linhas[0]["numero"], "90012/2026")
+        self.assertEqual(linhas[0]["plataforma"], "Compras.gov.br")
+        self.assertTrue(linhas[0]["link_disputa"].startswith("https://"))
 
     def test_descarta_quem_encerra_sem_tempo_de_montar_proposta(self):
         hoje = date(2026, 10, 12)
