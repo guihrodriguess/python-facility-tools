@@ -103,6 +103,16 @@ class TestLinhas(unittest.TestCase):
         self.assertEqual(linhas[0]["dias"], 8)
         self.assertEqual(linhas[0]["link"], "https://pncp.gov.br/app/editais/00000000000191/2026/7")
 
+    def test_descarta_quem_encerra_sem_tempo_de_montar_proposta(self):
+        hoje = date(2026, 10, 12)
+        itens = [
+            self._item("amanha", "Serviço de limpeza", "2026-10-13T09:00:00"),
+            self._item("3dias", "Serviço de limpeza", "2026-10-15T09:00:00"),
+            self._item("semdata", "Serviço de limpeza", None),
+        ]
+        self.assertEqual([l["controle_pncp"] for l in montar_linhas(itens, hoje, None)], ["3dias"])
+        self.assertEqual(len(montar_linhas(itens, hoje, None, antecedencia=1)), 2)
+
     def test_filtro_de_categoria(self):
         hoje = date(2026, 10, 12)
         itens = [self._item("a", "Serviço de limpeza", "2026-10-30T09:00:00")]

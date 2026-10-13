@@ -32,6 +32,10 @@ python radar.py --uf MG SP --categorias manutencao limpeza
 python radar.py --uf MG --todas
 ```
 
+## Prazo
+
+Edital que já encerrou, sem data de encerramento ou que encerra em menos de 3 dias fica de fora: não dá tempo de montar a proposta. Ajuste com `--antecedencia N`.
+
 ## Saída
 
 - `saida/radar_MG_AAAA-MM-DD.md`: resumo por categoria, o que encerra em até 7 dias e a lista completa por pontuação, com link para o edital no PNCP.

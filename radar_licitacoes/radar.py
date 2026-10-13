@@ -196,7 +196,10 @@ def _data(valor: str | None) -> datetime | None:
         return None
 
 
-def montar_linhas(itens: list[dict], hoje: date, filtro: set[str] | None) -> list[dict]:
+ANTECEDENCIA_PADRAO = 3  # dias: com menos que isso não dá tempo de montar a proposta
+
+
+def montar_linhas(itens: list[dict], hoje: date, filtro: set[str] | None, antecedencia: int = ANTECEDENCIA_PADRAO) -> list[dict]:
     linhas, vistos = [], set()
     for it in itens:
         controle = it.get("numeroControlePNCP")
@@ -210,7 +213,7 @@ def montar_linhas(itens: list[dict], hoje: date, filtro: set[str] | None) -> lis
             continue
         fim = _data(it.get("dataEncerramentoProposta"))
         dias = (fim.date() - hoje).days if fim else None
-        if dias is not None and dias < 0:
+        if dias is None or dias < antecedencia:  # já encerrou, não tem data ou não dá tempo
             continue
         unidade = it.get("unidadeOrgao") or {}
         ano, seq = it.get("anoCompra"), it.get("sequencialCompra")
@@ -310,6 +313,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="categorias de interesse (padrão: todas menos elevadores)")
     p.add_argument("--todas", action="store_true", help="todas as categorias, inclusive elevadores")
     p.add_argument("--modalidade", type=int, default=PREGAO_ELETRONICO, help="código da modalidade no PNCP (6 = pregão eletrônico)")
+    p.add_argument("--antecedencia", type=int, default=ANTECEDENCIA_PADRAO,
+                   help=f"só editais que encerram daqui a pelo menos N dias (padrão {ANTECEDENCIA_PADRAO})")
     p.add_argument("--max-paginas", type=int, default=100, help="teto de páginas por UF")
     p.add_argument("--saida", type=Path, default=Path("saida"), help="pasta do relatório")
     p.add_argument("--json", type=Path, help="também grava um resumo em JSON neste caminho")
@@ -330,7 +335,7 @@ def main(argv: list[str] | None = None) -> int:
         bruto.write_text(json.dumps(lidos, ensure_ascii=False), encoding="utf-8")
         itens += lidos
     filtro = None if a.todas else set(a.categorias)
-    linhas = montar_linhas(itens, hoje, filtro)
+    linhas = montar_linhas(itens, hoje, filtro, a.antecedencia)
 
     base = a.saida / f"radar_{'-'.join(u.upper() for u in a.uf)}_{hoje.isoformat()}"
     escrever_csv(linhas, base.with_suffix(".csv"))
